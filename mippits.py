@@ -6,7 +6,6 @@ def signed(value):
     return value - 0x100000000 if value & 0x80000000 else value
 
 # from http://code.activestate.com/recipes/577977-get-single-keypress/, MIT licensed
-import sys
 try:
     import tty, termios
 except ImportError:
@@ -15,6 +14,7 @@ except ImportError:
     except ImportError: raise ImportError("getch not available")
     else: getch = msvcrt.getch
 else:
+    import sys
     def getch():
         """
         getch() -> key character
@@ -31,20 +31,22 @@ else:
         finally: termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
         return ch
 
-class Mippet:
+class Mippit:
     def __init__(self):
         self.registers = [0] * 32
         self.PC = 0
         self.HI, self.LO = 0, 0
+        self.MEM = {}
         
-        from collections import defaultdict
-        self.MEM = defaultdict(int)
+        self.offset = self.PC
+        self.tracing = False
     
     def trace(self, instruction, comment = None):
+        if not self.tracing: return # tracing disabled
         if comment is None:
             print(instruction)
         else:
-            print("{:<20}; {}".format(instruction, comment))
+            print("[DEBUGGER] {:=#010x}    {:<20}; {}".format(self.offset, instruction, comment))
     
     def decode_execute(self, instruction):
         r = self.registers
@@ -81,7 +83,7 @@ class Mippet:
             self.trace("mflo ${}".format(d), "${}={}".format(d, r[d]))
         elif instruction & 0b11111111111111110000011111111111 == 0b00000000000000000000000000010100: # load immediate and skip (lis)
             assert self.PC % 4 == 0
-            r[d] = self.MEM[self.PC // 4]
+            r[d] = self.MEM[self.PC // 4] if self.PC // 4 in self.MEM else 0
             self.PC += 4
             self.trace("lis ${}".format(d), "${}={}".format(d, r[d]))
             self.trace(".word {}".format(r[d]))
@@ -92,11 +94,11 @@ class Mippet:
                 value = ord(getch())
                 assert 0 <= value <= 255, "Invalid character entered - character must be ASCII"
                 r[t] = value
-            else: r[t] = self.MEM[address // 4]
+            else: r[t] = self.MEM[address // 4] if address // 4 in self.MEM else 0
             self.trace("lw ${}, {}(${})".format(t, i, s), "${}={}, ${}={}".format(t, r[t], s, r[s]))
         elif instruction & 0b11111100000000000000000000000000 == 0b10101100000000000000000000000000: # store word (sw)
             address = r[s] + i
-            assert address % 4 == 0
+            assert address % 4 == 0, "Invalid address - not aligned to word boundary."
             if address == 0xFFFF000C: # write to stdout
                 print(chr(r[t] & 0xFF), end="")
             else: self.MEM[address // 4] = r[t]
@@ -121,26 +123,38 @@ class Mippet:
             r[31] = self.PC
             self.PC = temp
             self.trace("jalr ${}".format(s), "${}={}".format(s, r[s]))
-        else: raise Exception("Unknown instruction: " + instruction)
+        else: raise Exception("Unknown instruction: {:=#010x}".format(instruction))
     
-    def load(self, code):
-        assert len(code) % 8 == 0, "Invalid code length - machine code must be collection of 32-bit words"
-        for i in range(0, len(code) // 8): # copy the code into memory
-            self.MEM[i] = int(code[i * 8:i * 8 + 8], 16)
+    def load(self, code): # load binary code into memory
+        import struct
+        assert len(code) % 4 == 0, "Invalid code length - machine code must be collection of 32-bit words"
+        for i in range(0, len(code) // 4): # copy the code into memory
+            self.MEM[i] = struct.unpack(">i", code[i * 4:i * 4 + 4])[0] # load as big endian 32-bit integer
         self.registers[30] = 0xFFFFFFFF
         self.registers[31] = 0xFFFFFFFF
     
+    def load_hex(self, hex_code): # load hex code into memory
+        assert len(hex_code) % 8 == 0, "Invalid code length - machine code must be collection of 32-bit words"
+        for i in range(0, len(hex_code) // 8): # copy the code into memory
+            self.MEM[i] = int(hex_code[i * 8:i * 8 + 8], 16)
+        self.registers[30] = 0xFFFFFFFF
+        self.registers[31] = 0xFFFFFFFF
+    
+    def step(self):
+        if self.PC == 0xFFFFFFFF: return False # jumped past end of memory, program ended
+        assert self.PC % 4 == 0, "Program counter must be aligned to word boundaries"
+        instruction = self.MEM[self.PC // 4] if self.PC // 4 in self.MEM else 0
+        self.offset = self.PC
+        self.PC += 4
+        self.decode_execute(instruction)
+        return True
+    
     def run(self):
-        while True:
-            if self.PC == 0xFFFFFFFF: break # jumped past end of memory, terminate program
-            assert self.PC % 4 == 0, "Program counter must be aligned to word boundaries"
-            instruction = self.MEM[self.PC // 4]
-            self.PC += 4
-            self.decode_execute(instruction)
+        while self.step(): pass
 
 if __name__ == "__main__":
-    mippet = Mippet()
-    mippet.load("00201820004008200060102003e00008")
-    mippet.registers[1], mippet.registers[2] = 3, 4
-    mippet.run()
-    print(mippet.registers)
+    mips = Mippit()
+    mips.load_hex("00201820004008200060102003e00008")
+    mips.registers[1], mips.registers[2] = 3, 4
+    mips.run()
+    print(mips.registers)
