@@ -13,9 +13,6 @@ def breakpoint_prompt():
         if command == "q" or command == "quit": # stop executing program
             sys.exit()
         elif command == "h" or command == "help": # show commands help
-            print("COMMAND REFERENCE")
-            print("=================")
-            print()
             print("q/quit          - stop debugging and exit")
             print("h/help          - show this help text")
             print("b [address]     - toggle breakpoint at current location, or optionally, at a specified address")
@@ -104,7 +101,7 @@ def breakpoint_prompt():
                 params = param.strip().split(maxsplit=1)
                 register, value = int(params[0]), int(params[1], 0)
                 mips.registers[register] = value
-                print("Register ${} set to {}".format(register, value))
+                print("Register ${0} set to {1:=#010x} ({1})".format(register, value))
             except:
                 print("Invalid register/value: {}".format(param))
         else: print("Unrecognized command: {}".format(command))
@@ -142,6 +139,7 @@ file_path = args[0]
 #wip: memory and register loading from options
 
 mips = mippits.Mippit()
+mips.tracing = trace # enable or disable tracing
 try:
     with open(file_path, "rb") as f:
         code = f.read()
