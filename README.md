@@ -36,7 +36,7 @@ Help:
 
 Standard debugging:
 
-    $ ./debugger.py --breakpoints=0 swap_r1_and_r2.mips
+    $ ./debugger.py --breakpoints=0,0xDEADBEEF swap_r1_and_r2.mips
     [DEBUGGER] Program hit breakpoint at 0x00000000
     Enter a debugger command (or "help" for options): help
     q/quit          - stop debugging and exit
