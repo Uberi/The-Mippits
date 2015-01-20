@@ -80,6 +80,6 @@ Standard debugging:
 License
 -------
 
-MIPPIT is MIT licensed and lives at [https://github.com/Uberi/The-Mippits/]. See the `LICENSE` file in the program directory for more information.
+MIPPIT is MIT licensed and lives at https://github.com/Uberi/The-Mippits/. See the `LICENSE` file in the program directory for more information.
 
 Although MIPPITS tries to be faithful to the execution environment given in the course materials, it is possible that the simulation is not perfect and there may be subtle differences in functionality. Use this software at your own risk.
