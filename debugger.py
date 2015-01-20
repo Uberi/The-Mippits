@@ -7,7 +7,7 @@ import mippits
 def breakpoint_prompt():
     print("[DEBUGGER] Program hit breakpoint at {:=#010x}".format(mips.PC))
     while True:
-        try: values = input("Enter a debugger command (or \"help\" for options): ").strip().split(maxsplit=1)
+        try: values = input("[DEBUGGER] Enter a debugger command (or \"help\" for options): ").strip().split(maxsplit=1)
         except EOFError: sys.exit()
         command, param = values[0], values[1] if len(values) > 1 else None
         if command == "q" or command == "quit": # stop executing program
@@ -29,13 +29,13 @@ def breakpoint_prompt():
                 location = int(param, 0) // 4
                 if location in breakpoints:
                     breakpoints.remove(location)
-                    print("Breakpoint removed from {:=#010x}".format(location))
+                    print("[DEBUGGER] Breakpoint removed from {:=#010x}".format(location))
                 else:
                     breakpoints.add(location)
-                    print("Breakpoint added at {:=#010x}".format(location))
+                    print("[DEBUGGER] Breakpoint added at {:=#010x}".format(location))
             except ValueError: print("Invalid address: {}".format(param))
         elif command == "c": # continue executing program
-            print("Execution continuing from {:=#010x}".format(mips.PC))
+            print("[DEBUGGER] Execution continuing from {:=#010x}".format(mips.PC))
             break
         elif command == "n": # step over (execute until the next instruction in memory)
             instruction = self.MEM[self.PC // 4] if self.PC // 4 in self.MEM else 0
@@ -44,7 +44,7 @@ def breakpoint_prompt():
             else:
                 location = mips.PC + 4
             breakpoints.add(location) # add a breakpoint at the next instruction in memory
-            print("Stepping over, breaking again at {:=#010x}".format(location))
+            print("[DEBUGGER] Stepping over, breaking again at {:=#010x}".format(location))
             break
         elif command == "s": # step into (execute one instruction)
             if not mips.step(): break
@@ -88,7 +88,7 @@ def breakpoint_prompt():
                 try:
                     start, end = int(bounds[0], 0) // 4, int(int(bounds[1] if len(bounds) > 1 else bounds[0], 0) / 4 + 1) # lower and upper word boundaries
                 except ValueError:
-                    print("Invalid address bounds: {}".format(param))
+                    print("[DEBUGGER] Invalid address bounds: {}".format(param))
                 else:
                     for location in range(start, end):
                         print("{0:=#010x} = {1:=#010x} ({1})".format(location * 4, mips.MEM[location] if location in mips.MEM else 0))
@@ -96,11 +96,11 @@ def breakpoint_prompt():
             try:
                 location = int(param, 0) // 4
             except ValueError:
-                print("Invalid start address: {}".format(param))
+                print("[DEBUGGER] Invalid start address: {}".format(param))
             else:
                 while True:
                     try:
-                        mips.MEM[location] = int(input("Enter a value for memory at {:=#010x}: ".format(location * 4)), 0)
+                        mips.MEM[location] = int(input("[DEBUGGER] Enter a value for memory at {:=#010x}: ".format(location * 4)), 0)
                     except ValueError: break
                     else:
                         print("[DEBUGGER] Memory at {0:=#010x} set to {1:=#010x} ({1})".format(location * 4, mips.MEM[location]))
@@ -110,17 +110,17 @@ def breakpoint_prompt():
                 params = param.strip().split(maxsplit=1)
                 register, value = int(params[0]), int(params[1], 0)
                 mips.registers[register] = value
-                print("Register ${0} set to {1:=#010x} ({1})".format(register, value))
+                print("[DEBUGGER] Register ${0} set to {1:=#010x} ({1})".format(register, value))
             except:
-                print("Invalid register/value: {}".format(param))
+                print("[DEBUGGER] Invalid register/value: {}".format(param))
         elif command == "t":
             if mips.tracing:
                 mips.tracing = False
-                print("Instruction tracing disabled")
+                print("[DEBUGGER] Instruction tracing disabled")
             else:
                 mips.tracing = True
-                print("Instruction tracing enabled")
-        else: print("Unrecognized command: {}".format(command))
+                print("[DEBUGGER] Instruction tracing enabled")
+        else: print("[DEBUGGER] Unrecognized command: {}".format(command))
 
 def print_help():
     print("{} --help".format(sys.argv[0]))
@@ -161,7 +161,7 @@ try:
         code = f.read()
         mips.load(code)
 except OSError:
-    print("Could not read file: {}".format(file_path))
+    print("[DEBUGGER] Could not read file: {}".format(file_path))
 
 # add breakpoints from the code
 BREAKPOINT = 0x00000020 # this represents the instruction `add $0, $0, $0` and is interpreted as a breakpoint, since it is otherwise a no-op

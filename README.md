@@ -38,7 +38,7 @@ Standard debugging:
 
     $ ./debugger.py --breakpoints=0,0xDEADBEEF swap_r1_and_r2.mips
     [DEBUGGER] Program hit breakpoint at 0x00000000
-    Enter a debugger command (or "help" for options): help
+    [DEBUGGER] Enter a debugger command (or "help" for options): help
     q/quit          - stop debugging and exit
     h/help          - show this help text
     b [address]     - toggle breakpoint at current location, or optionally, at a specified address
@@ -49,11 +49,11 @@ Standard debugging:
     w start         - set memory to values prompted from user starting from `start`
     r reg value     - set register $`reg` to `value`
     t               - toggle instruction tracing
-    Enter a debugger command (or "help" for options): r 1 54364
-    Register $1 set to 0x0000D45C (54364)
-    Enter a debugger command (or "help" for options): r 2 0x8
-    Register $1 set to 0x00000008 (8)
-    Enter a debugger command (or "help" for options): p
+    [DEBUGGER] Enter a debugger command (or "help" for options): r 1 54364
+    [DEBUGGER] Register $1 set to 0x0000D45C (54364)
+    [DEBUGGER] Enter a debugger command (or "help" for options): r 2 0x8
+    [DEBUGGER] Register $1 set to 0x00000008 (8)
+    [DEBUGGER] Enter a debugger command (or "help" for options): p
      $1 = 0x0000d45c (54364)         $2 = 0x00000008 (8)             $3 = 0x00000000 (0)             $4 = 0x00000000 (0)
      $5 = 0x00000000 (0)             $6 = 0x00000000 (0)             $7 = 0x00000000 (0)             $8 = 0x00000000 (0)
      $9 = 0x00000000 (0)            $10 = 0x00000000 (0)            $11 = 0x00000000 (0)            $12 = 0x00000000 (0)
@@ -62,10 +62,10 @@ Standard debugging:
     $21 = 0x00000000 (0)            $22 = 0x00000000 (0)            $23 = 0x00000000 (0)            $24 = 0x00000000 (0)
     $25 = 0x00000000 (0)            $26 = 0x00000000 (0)            $27 = 0x00000000 (0)            $28 = 0x00000000 (0)
     $29 = 0x00000000 (0)            $30 = 0xffffffff (4294967295)   $31 = 0xffffffff (4294967295)
-    Enter a debugger command (or "help" for options): c
-    Execution continuing from 0x00000000
+    [DEBUGGER] Enter a debugger command (or "help" for options): c
+    [DEBUGGER] Execution continuing from 0x00000000
     [DEBUGGER] Program hit breakpoint at 0xffffffff
-    Enter a debugger command (or "help" for options): p
+    [DEBUGGER] Enter a debugger command (or "help" for options): p
      $1 = 0x00000008 (8)             $2 = 0x0000d45c (54364)         $3 = 0x0000d45c (54364)         $4 = 0x00000000 (0)
      $5 = 0x00000000 (0)             $6 = 0x00000000 (0)             $7 = 0x00000000 (0)             $8 = 0x00000000 (0)
      $9 = 0x00000000 (0)            $10 = 0x00000000 (0)            $11 = 0x00000000 (0)            $12 = 0x00000000 (0)
@@ -74,8 +74,8 @@ Standard debugging:
     $21 = 0x00000000 (0)            $22 = 0x00000000 (0)            $23 = 0x00000000 (0)            $24 = 0x00000000 (0)
     $25 = 0x00000000 (0)            $26 = 0x00000000 (0)            $27 = 0x00000000 (0)            $28 = 0x00000000 (0)
     $29 = 0x00000000 (0)            $30 = 0xffffffff (4294967295)   $31 = 0xffffffff (4294967295)
-    Enter a debugger command (or "help" for options): c
-    Execution continuing from 0xffffffff
+    [DEBUGGER] Enter a debugger command (or "help" for options): c
+    [DEBUGGER] Execution continuing from 0xffffffff
     [DEBUGGER] Program exited normally. 
 
 License
