@@ -20,8 +20,9 @@ def breakpoint_prompt():
             print("n               - run until just before the next physical instruction, then break")
             print("s               - run until just before the next instruction, then break")
             print("p [start[ end]] - print out register values and optionally, memory values between the specified address or addresses")
-            print("t               - toggle instruction tracing")
+            print("w start         - set memory to values prompted from user starting from `start`")
             print("r reg value     - set register $`reg` to `value`")
+            print("t               - toggle instruction tracing")
         elif command == "b":
             if not param: param = mips.PC
             try:
@@ -86,16 +87,24 @@ def breakpoint_prompt():
                 bounds = param.strip().split(maxsplit=1)
                 try:
                     start, end = int(bounds[0], 0) // 4, int(int(bounds[1] if len(bounds) > 1 else bounds[0], 0) / 4 + 1) # lower and upper word boundaries
-                    for location in range(start, end): print("{0:=#010x} = {1:=#010x} ({1})".format(location * 4, mips.MEM[location] if location in mips.MEM else 0))
                 except ValueError:
                     print("Invalid address bounds: {}".format(param))
-        elif command == "t":
-            if mips.tracing:
-                mips.tracing = False
-                print("Instruction tracing disabled")
+                else:
+                    for location in range(start, end):
+                        print("{0:=#010x} = {1:=#010x} ({1})".format(location * 4, mips.MEM[location] if location in mips.MEM else 0))
+        elif command == "w":
+            try:
+                location = int(param, 0) // 4
+            except ValueError:
+                print("Invalid start address: {}".format(param))
             else:
-                mips.tracing = True
-                print("Instruction tracing enabled")
+                while True:
+                    try:
+                        mips.MEM[location] = int(input("Enter a value for memory at {:=#010x}: ".format(location * 4)), 0)
+                    except ValueError: break
+                    else:
+                        print("[DEBUGGER] Memory at {0:=#010x} set to {1:=#010x} ({1})".format(location * 4, mips.MEM[location]))
+                        location += 1
         elif command == "r":
             try:
                 params = param.strip().split(maxsplit=1)
@@ -104,6 +113,13 @@ def breakpoint_prompt():
                 print("Register ${0} set to {1:=#010x} ({1})".format(register, value))
             except:
                 print("Invalid register/value: {}".format(param))
+        elif command == "t":
+            if mips.tracing:
+                mips.tracing = False
+                print("Instruction tracing disabled")
+            else:
+                mips.tracing = True
+                print("Instruction tracing enabled")
         else: print("Unrecognized command: {}".format(command))
 
 def print_help():

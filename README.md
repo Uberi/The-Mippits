@@ -46,8 +46,9 @@ Standard debugging:
     n               - run until just before the next physical instruction, then break
     s               - run until just before the next instruction, then break
     p [start[ end]] - print out register values and optionally, memory values between the specified address or addresses
-    t               - toggle instruction tracing
+    w start         - set memory to values prompted from user starting from `start`
     r reg value     - set register $`reg` to `value`
+    t               - toggle instruction tracing
     Enter a debugger command (or "help" for options): r 1 54364
     Register $1 set to 0x0000D45C (54364)
     Enter a debugger command (or "help" for options): r 2 0x8
