@@ -12,6 +12,13 @@ However, they are strongly coupled with the student Linux environment, which mak
 
 MIPPET is a tiny, flexible, and extensible virtual machine to help alleviate these issues. The MIPPET debugger supports **breakpoints**, **stepping** (including stepping over calls), and **instruction/control flow tracing** with **inline value inspection**.
 
+Setup
+-----
+
+First, make sure you have a recent version of [Python 3](https://www.python.org/downloads/).
+
+Now, [download the software](https://github.com/Uberi/The-Mippits/archive/master.zip) and extract it.
+
 Using the Debugger
 ------------------
 
@@ -69,3 +76,10 @@ Standard debugging:
     Enter a debugger command (or "help" for options): c
     Execution continuing from 0xffffffff
     [DEBUGGER] Program exited normally. 
+
+License
+-------
+
+MIPPIT is MIT licensed and lives at [https://github.com/Uberi/The-Mippits/]. See the `LICENSE` file in the program directory for more information.
+
+Although MIPPITS tries to be faithful to the execution environment given in the course materials, it is possible that the simulation is not perfect and there may be subtle differences in functionality. Use this software at your own risk.
