@@ -63,17 +63,17 @@ class Mippit:
             self.trace("sub ${}, ${}, ${}".format(d, s, t), "${}={}, ${}={}, ${}={}".format(d, r[d], s, r[s], t, r[t]))
         elif instruction & 0b11111100000000001111111111111111 == 0b00000000000000000000000000011000: # multiply (mult)
             result = signed(r[s]) * signed(r[t])
-            self.HI, self.LO = result >> 32, result & 0xFFFFFFFF
+            self.HI, self.LO = normalize(result >> 32), normalize(result)
             self.trace("mult ${}, ${}".format(s, t), "${}={}, ${}={}".format(s, r[s], t, r[t]))
         elif instruction & 0b11111100000000001111111111111111 == 0b00000000000000000000000000011001: # multiply unsigned (multu)
             result = r[s] * r[t]
-            self.HI, self.LO = result >> 32, result & 0xFFFFFFFF
+            self.HI, self.LO = normalize(result >> 32), normalize(result)
             self.trace("multu ${}, ${}".format(s, t), "${}={}, ${}={}".format(s, r[s], t, r[t]))
         elif instruction & 0b11111100000000001111111111111111 == 0b00000000000000000000000000011010: # divide (div)
-            self.HI, self.LO = signed(r[s]) % signed(r[t]), signed(r[s]) / signed(r[t])
+            self.HI, self.LO = normalize(signed(r[s]) % signed(r[t])), normalize(signed(r[s]) // signed(r[t]))
             self.trace("div ${}, ${}".format(s, t), "${}={}, ${}={}".format(s, r[s], t, r[t]))
         elif instruction & 0b11111100000000001111111111111111 == 0b00000000000000000000000000011011: # divide unsigned (divu)
-            self.HI, self.LO = r[s] / r[t], r[s] / r[t]
+            self.HI, self.LO = r[s] % r[t], r[s] // r[t]
             self.trace("divu ${}, ${}".format(s, t), "${}={}, ${}={}".format(s, r[s], t, r[t]))
         elif instruction & 0b11111111111111110000011111111111 == 0b00000000000000000000000000010000: # move from high/remainder (mfhi)
             r[d] = self.HI
@@ -84,11 +84,11 @@ class Mippit:
         elif instruction & 0b11111111111111110000011111111111 == 0b00000000000000000000000000010100: # load immediate and skip (lis)
             assert self.PC % 4 == 0
             r[d] = self.MEM[self.PC // 4] if self.PC // 4 in self.MEM else 0
-            self.PC += 4
+            self.PC = normalize(self.PC + 4)
             self.trace("lis ${}".format(d), "${}={}".format(d, r[d]))
             self.trace(".word {}".format(r[d]))
         elif instruction & 0b11111100000000000000000000000000 == 0b10001100000000000000000000000000: # load word (lw)
-            address = r[s] + i
+            address = normalize(r[s] + i)
             assert address % 4 == 0
             if address == 0xFFFF0004: # read from stdin
                 value = ord(getch())
@@ -97,7 +97,7 @@ class Mippit:
             else: r[t] = self.MEM[address // 4] if address // 4 in self.MEM else 0
             self.trace("lw ${}, {}(${})".format(t, i, s), "${}={}, ${}={}".format(t, r[t], s, r[s]))
         elif instruction & 0b11111100000000000000000000000000 == 0b10101100000000000000000000000000: # store word (sw)
-            address = r[s] + i
+            address = normalize(r[s] + i)
             assert address % 4 == 0, "Invalid address - not aligned to word boundary."
             if address == 0xFFFF000C: # write to stdout
                 print(chr(r[t] & 0xFF), end="")
@@ -110,10 +110,10 @@ class Mippit:
             r[d] = 1 if r[s] < r[t] else 0
             self.trace("sltu ${}, ${}, ${}".format(d, s, t), "${}={}, ${}={}, ${}={}".format(d, r[d], s, r[s], t, r[t]))
         elif instruction & 0b11111100000000000000000000000000 == 0b00010000000000000000000000000000: # branch on equal (beq)
-            if r[s] == r[t]: self.PC += i * 4
+            if r[s] == r[t]: self.PC = normalize(self.PC + i * 4)
             self.trace("beq ${}, ${}, {}".format(s, t, i), "${}={}, ${}={}".format(s, r[s], t, r[t]))
         elif instruction & 0b11111100000000000000000000000000 == 0b00010100000000000000000000000000: # branch on not equal (bne)
-            if r[s] != r[t]: self.PC += i * 4
+            if r[s] != r[t]: self.PC = normalize(self.PC + i * 4)
             self.trace("bne ${}, ${}, {}".format(s, t, i), "${}={}, ${}={}".format(s, r[s], t, r[t]))
         elif instruction & 0b11111100000111111111111111111111 == 0b00000000000000000000000000001000: # jump register (jr)
             self.PC = r[s]
@@ -130,14 +130,14 @@ class Mippit:
         assert len(code) % 4 == 0, "Invalid code length - machine code must be collection of 32-bit words"
         for i in range(0, len(code) // 4): # copy the code into memory
             self.MEM[i] = struct.unpack(">i", code[i * 4:i * 4 + 4])[0] # load as big endian 32-bit integer
-        self.registers[30] = 0xFFFFFFFF
+        self.registers[30] = 0x00000000
         self.registers[31] = 0xFFFFFFFF
     
     def load_hex(self, hex_code): # load hex code into memory
         assert len(hex_code) % 8 == 0, "Invalid code length - machine code must be collection of 32-bit words"
         for i in range(0, len(hex_code) // 8): # copy the code into memory
             self.MEM[i] = int(hex_code[i * 8:i * 8 + 8], 16)
-        self.registers[30] = 0xFFFFFFFF
+        self.registers[30] = 0x00000000
         self.registers[31] = 0xFFFFFFFF
     
     def step(self):
@@ -145,7 +145,7 @@ class Mippit:
         assert self.PC % 4 == 0, "Program counter must be aligned to word boundaries"
         instruction = self.MEM[self.PC // 4] if self.PC // 4 in self.MEM else 0
         self.offset = self.PC
-        self.PC += 4
+        self.PC = normalize(self.PC + 4)
         self.decode_execute(instruction)
         return True
     

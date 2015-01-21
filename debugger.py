@@ -99,11 +99,12 @@ def breakpoint_prompt():
                 print("[DEBUGGER] Invalid start address: {}".format(param))
             else:
                 while True:
+                    entry = input("[DEBUGGER] Enter a value for memory at {:=#010x} (blank to end): ".format(location * 4))
                     try:
-                        value = int(input("[DEBUGGER] Enter a value for memory at {:=#010x} (blank to end): ".format(location * 4)), 0)
+                        value = mippits.normalize(int(entry, 0))
                     except ValueError:
-                        if param.strip() == "": break
-                        print("[DEBUGGER] Invalid value: {}".format(value))
+                        if entry.strip() == "": break
+                        print("[DEBUGGER] Invalid value: '{}'".format(entry))
                     else:
                         print("[DEBUGGER] Memory at {0:=#010x} set to {1:=#010x} ({1})".format(location * 4, value))
                         mips.MEM[location] = value
@@ -111,7 +112,8 @@ def breakpoint_prompt():
         elif command == "r":
             try:
                 params = param.strip().split(maxsplit=1)
-                register, value = int(params[0]), int(params[1], 0)
+                register, value = int(params[0]), mippit.normalize(int(params[1], 0))
+                assert 0 <= register <= 31, "Invalid register: {}".format(register)
                 mips.registers[register] = value
                 print("[DEBUGGER] Register ${0} set to {1:=#010x} ({1})".format(register, value))
             except:
