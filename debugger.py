@@ -100,10 +100,13 @@ def breakpoint_prompt():
             else:
                 while True:
                     try:
-                        mips.MEM[location] = int(input("[DEBUGGER] Enter a value for memory at {:=#010x}: ".format(location * 4)), 0)
-                    except ValueError: break
+                        value = int(input("[DEBUGGER] Enter a value for memory at {:=#010x} (blank to end): ".format(location * 4)), 0)
+                    except ValueError:
+                        if param.strip() == "": break
+                        print("[DEBUGGER] Invalid value: {}".format(value))
                     else:
-                        print("[DEBUGGER] Memory at {0:=#010x} set to {1:=#010x} ({1})".format(location * 4, mips.MEM[location]))
+                        print("[DEBUGGER] Memory at {0:=#010x} set to {1:=#010x} ({1})".format(location * 4, value))
+                        mips.MEM[location] = value
                         location += 1
         elif command == "r":
             try:
