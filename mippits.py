@@ -125,18 +125,22 @@ class Mippit:
             self.trace("jalr ${}".format(s), "${}={}".format(s, r[s]))
         else: raise Exception("Unknown instruction: {:=#010x}".format(instruction))
     
-    def load(self, code): # load binary code into memory
+    def load(self, code, offset = 0): # load binary code into memory
         import struct
         assert len(code) % 4 == 0, "Invalid code length - machine code must be collection of 32-bit words"
+        assert offset % 4 == 0, "Invalid offset - offset must be aligned to 32-bit word boundary"
+        offset //= 4 # get the offset in words
         for i in range(0, len(code) // 4): # copy the code into memory
-            self.MEM[i] = struct.unpack(">i", code[i * 4:i * 4 + 4])[0] # load as big endian 32-bit integer
+            self.MEM[i + offset] = struct.unpack(">i", code[i * 4:i * 4 + 4])[0] # load as big endian 32-bit integer
         self.registers[30] = 0x00000000
         self.registers[31] = 0xFFFFFFFF
     
-    def load_hex(self, hex_code): # load hex code into memory
+    def load_hex(self, hex_code, offset = 0): # load hex code into memory
         assert len(hex_code) % 8 == 0, "Invalid code length - machine code must be collection of 32-bit words"
+        assert offset % 4 == 0, "Invalid offset - offset must be aligned to 32-bit word boundary"
+        offset //= 4
         for i in range(0, len(hex_code) // 8): # copy the code into memory
-            self.MEM[i] = int(hex_code[i * 8:i * 8 + 8], 16)
+            self.MEM[i + offset] = int(hex_code[i * 8:i * 8 + 8], 16)
         self.registers[30] = 0x00000000
         self.registers[31] = 0xFFFFFFFF
     
@@ -149,7 +153,8 @@ class Mippit:
         self.decode_execute(instruction)
         return True
     
-    def run(self):
+    def run(self, offset = 0):
+        self.PC = offset
         while self.step(): pass
 
 if __name__ == "__main__":

@@ -27,11 +27,12 @@ If your assignment is due Wednesday and your code is both totally broken and ent
 Help:
 
     $ ./debugger.py --help
-    debugger.py --help
+    ./debugger.py --help
         Shows this help message.
     
-    debugger.py [--trace] [--breakpoints=b_1,...,b_n] file
+    ./debugger.py [--trace] [--breakpoints=b_1,...,b_n] [--offset=o] file
         Starts debugging `file`. If `--trace` is specified, instruction tracing is enabled.
+        If `--offset` is specified, the code is loaded at address `o` (defaulting to 0) and execution begins there.
         Breakpoints can be specified as `b_1,...,b_n` where each `b_1` to `b_n` is an address.
 
 Standard debugging:

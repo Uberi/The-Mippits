@@ -131,13 +131,14 @@ def print_help():
     print("{} --help".format(sys.argv[0]))
     print("    Shows this help message.")
     print()
-    print("{} [--trace] [--breakpoints=b_1,...,b_n] file       ".format(sys.argv[0]))
+    print("{} [--trace] [--breakpoints=b_1,...,b_n] [--offset=o] file".format(sys.argv[0]))
     print("    Starts debugging `file`. If `--trace` is specified, instruction tracing is enabled.")
+    print("    If `--offset` is specified, the code is loaded at address `o` (defaulting to 0) and execution begins there.")
     print("    Breakpoints can be specified as `b_1,...,b_n` where each `b_1` to `b_n` is an address.")
 
 # parse command line arguments
 try:
-    opts, args = getopt.getopt(sys.argv[1:], "", ["help", "trace", "breakpoints="])
+    opts, args = getopt.getopt(sys.argv[1:], "", ["help", "trace", "breakpoints=", "offset="])
 except getopt.GetoptError as err:
     print(err)
     print()
@@ -145,6 +146,7 @@ except getopt.GetoptError as err:
     sys.exit(2)
 trace = False
 breakpoints = set()
+offset = 0
 for opt, arg in opts:
     if opt == "--help":
         print_help()
@@ -153,27 +155,31 @@ for opt, arg in opts:
         trace = True
     elif opt == "--breakpoints":
         breakpoints = set(int(x, 0) for x in arg.split(","))
+    elif opt == "--offset":
+        offset = int(arg, 0)
+        assert offset % 4 == 0, "Value must be a multiple of 4"
 if len(args) != 1:
     print_help()
     sys.exit(2)
 file_path = args[0]
-#wip: memory and register loading from options
+#wip: option to set the start address of the running and loading
 
 mips = mippits.Mippit()
 mips.tracing = trace # enable or disable tracing
 try:
     with open(file_path, "rb") as f:
         code = f.read()
-        mips.load(code)
+        mips.load(code, offset)
 except OSError:
     print("[DEBUGGER] Could not read file: {}".format(file_path))
 
 # add breakpoints from the code
 BREAKPOINT = 0x00000020 # this represents the instruction `add $0, $0, $0` and is interpreted as a breakpoint, since it is otherwise a no-op
-for offset, instruction in mips.MEM.items():
+for address, instruction in mips.MEM.items():
     if instruction == BREAKPOINT:
-        breakpoints.add(offset * 4)
+        breakpoints.add(address * 4)
 
+mips.PC = offset # start executing at the desired offset
 while True:
     if mips.PC in breakpoints: breakpoint_prompt()
     if not mips.step(): break
