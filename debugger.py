@@ -112,7 +112,7 @@ def breakpoint_prompt():
         elif command == "r":
             try:
                 params = param.strip().split(maxsplit=1)
-                register, value = int(params[0]), mippit.normalize(int(params[1], 0))
+                register, value = int(params[0]), mippits.normalize(int(params[1], 0))
                 assert 0 <= register <= 31, "Invalid register: {}".format(register)
                 mips.registers[register] = value
                 print("[DEBUGGER] Register ${0} set to {1:=#010x} ({1})".format(register, value))
@@ -158,21 +158,24 @@ for opt, arg in opts:
     elif opt == "--offset":
         offset = int(arg, 0)
         assert offset % 4 == 0, "Value must be a multiple of 4"
-if len(args) != 1:
+if len(args) == 0:
+    try:
+        code = sys.stdin.buffer.read() # read MIPS assembly from stdin in binary mode
+    except OSError:
+        print("[DEBUGGER] Could not read standard input: {}".format(file_path))
+elif len(args) == 1:
+    try:
+        with open(args[0], "rb") as f: code = f.read()
+    except OSError:
+        print("[DEBUGGER] Could not read file: {}".format(file_path))
+else:
     print_help()
     sys.exit(2)
-file_path = args[0]
-#wip: option to set the start address of the running and loading
 
 mips = mippits.Mippit()
 mips.tracing = trace # enable or disable tracing
-try:
-    with open(file_path, "rb") as f:
-        code = f.read()
-        mips.load(code, offset)
-except OSError:
-    print("[DEBUGGER] Could not read file: {}".format(file_path))
-
+mips.load(code, offset)
+    
 # add breakpoints from the code
 BREAKPOINT = 0x00000020 # this represents the instruction `add $0, $0, $0` and is interpreted as a breakpoint, since it is otherwise a no-op
 for address, instruction in mips.MEM.items():
@@ -182,8 +185,14 @@ for address, instruction in mips.MEM.items():
 mips.PC = offset # start executing at the desired offset
 while True:
     if mips.PC in breakpoints: breakpoint_prompt()
-    if not mips.step(): break
+    try:
+        if not mips.step(): break
+    except AssertionError as e:
+        print("[DEBUGGER] FATAL EXCEPTION: {}".format(e))
+        breakpoint_prompt()
+        break
 
+print("[DEBUGGER] REACHED END OF PROGRAM")
 breakpoint_prompt()
 
 print("[DEBUGGER] Program exited normally.")
