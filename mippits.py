@@ -102,7 +102,7 @@ class Mippit:
             if address == 0xFFFF000C: # write to stdout
                 print(chr(r[t] & 0xFF), end="")
             else: self.MEM[address // 4] = r[t]
-            self.trace("lw ${}, {}(${})".format(t, i, s), "${}={}, ${}={}".format(t, r[t], s, r[s]))
+            self.trace("sw ${}, {}(${})".format(t, i, s), "${}={}, ${}={}".format(t, r[t], s, r[s]))
         elif instruction & 0b11111100000000000000011111111111 == 0b00000000000000000000000000101010: # set less than (slt)
             r[d] = 1 if signed(r[s]) < signed(r[t]) else 0
             self.trace("slt ${}, ${}, ${}".format(d, s, t), "${}={}, ${}={}, ${}={}".format(d, r[d], s, r[s], t, r[t]))
