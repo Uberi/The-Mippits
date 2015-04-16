@@ -39,7 +39,7 @@ def breakpoint_prompt():
             break
         elif command == "n": # step over (execute until the next instruction in memory)
             instruction = self.MEM[self.PC // 4] if self.PC // 4 in self.MEM else 0
-            if instruction & 0b11111111111111110000011111111111 == 0b00000000000000000000000000010100: # load immediate and skip instruction, make sure to jump over the word
+            if mippits.decode(instruction).startswith("lis "): # load immediate and skip instruction, make sure to jump over the word
                 location = mips.PC + 8
             else:
                 location = mips.PC + 4

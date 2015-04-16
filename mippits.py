@@ -123,24 +123,19 @@ class Mippit:
             r[31] = self.PC
             self.PC = temp
             self.trace("jalr ${}".format(s), "${}={}".format(s, r[s]))
-        else: raise Exception("Unknown instruction: {:=#010x}".format(instruction))
+        else: raise ValueError("Unknown instruction: {:=#010x}".format(instruction))
     
     def load(self, code, offset = 0): # load binary code into memory
-        import struct
-        assert len(code) % 4 == 0, "Invalid code length - machine code must be collection of 32-bit words"
         assert offset % 4 == 0, "Invalid offset - offset must be aligned to 32-bit word boundary"
         offset //= 4 # get the offset in words
-        for i in range(0, len(code) // 4): # copy the code into memory
-            self.MEM[i + offset] = struct.unpack(">i", code[i * 4:i * 4 + 4])[0] # load as big endian 32-bit integer
+        for i, word in enumerate(code_to_words(code)): self.MEM[i + offset] = word # copy the code into memory
         self.registers[30] = 0x00000000
         self.registers[31] = 0xFFFFFFFF
     
     def load_hex(self, hex_code, offset = 0): # load hex code into memory
-        assert len(hex_code) % 8 == 0, "Invalid code length - machine code must be collection of 32-bit words"
         assert offset % 4 == 0, "Invalid offset - offset must be aligned to 32-bit word boundary"
         offset //= 4
-        for i in range(0, len(hex_code) // 8): # copy the code into memory
-            self.MEM[i + offset] = int(hex_code[i * 8:i * 8 + 8], 16)
+        for i, word in enumerate(hex_to_words(hex_code)): self.MEM[i + offset] = word # copy the code into memory
         self.registers[30] = 0x00000000
         self.registers[31] = 0xFFFFFFFF
     
@@ -156,6 +151,56 @@ class Mippit:
     def run(self, offset = 0):
         self.PC = offset
         while self.step(): pass
+
+def code_to_words(code):
+    assert len(code) % 4 == 0, "Invalid code length - machine code must be collection of 32-bit words"
+    import struct
+    return [struct.unpack(">i", code[i * 4:i * 4 + 4])[0] for i in range(0, len(code) // 4)] # load each 4 bytes as a big endian 32-bit integer
+
+def hex_to_words(hex_code):
+    assert len(hex_code) % 8 == 0, "Invalid code length - machine code must be collection of 32-bit words"
+    return [int(hex_code[i * 8:i * 8 + 8], 16) for i in range(0, len(hex_code) // 8)]
+
+def decode(instruction):
+    d, s, t = (instruction >> 11) & 0b11111, (instruction >> 21) & 0b11111, (instruction >> 16) & 0b11111
+    i = instruction & 0b1111111111111111
+    if i & 0x8000: i -= 0x10000 # make sure we interpret the value as a signed 16 bit integer
+    
+    if instruction & 0b11111100000000000000011111111111 == 0b00000000000000000000000000100000: # add (add)
+        return "add ${}, ${}, ${}".format(d, s, t)
+    if instruction & 0b11111100000000000000011111111111 == 0b00000000000000000000000000100010: # subtract (sub)
+        return "sub ${}, ${}, ${}".format(d, s, t)
+    if instruction & 0b11111100000000001111111111111111 == 0b00000000000000000000000000011000: # multiply (mult)
+        return "mult ${}, ${}".format(s, t)
+    if instruction & 0b11111100000000001111111111111111 == 0b00000000000000000000000000011001: # multiply unsigned (multu)
+        return "multu ${}, ${}".format(s, t)
+    if instruction & 0b11111100000000001111111111111111 == 0b00000000000000000000000000011010: # divide (div)
+        return "div ${}, ${}".format(s, t)
+    if instruction & 0b11111100000000001111111111111111 == 0b00000000000000000000000000011011: # divide unsigned (divu)
+        return "divu ${}, ${}".format(s, t)
+    if instruction & 0b11111111111111110000011111111111 == 0b00000000000000000000000000010000: # move from high/remainder (mfhi)
+        return "mfhi ${}".format(d)
+    if instruction & 0b11111111111111110000011111111111 == 0b00000000000000000000000000010010: # move from low/quotient (mflo)
+        return "mflo ${}".format(d)
+    if instruction & 0b11111111111111110000011111111111 == 0b00000000000000000000000000010100: # load immediate and skip (lis)
+        return "lis ${}".format(d)
+    if instruction & 0b11111100000000000000000000000000 == 0b10001100000000000000000000000000: # load word (lw)
+        return "lw ${}, {}(${})".format(t, i, s)
+    if instruction & 0b11111100000000000000000000000000 == 0b10101100000000000000000000000000: # store word (sw)
+        return "sw ${}, {}(${})".format(t, i, s)
+    if instruction & 0b11111100000000000000011111111111 == 0b00000000000000000000000000101010: # set less than (slt)
+        return "slt ${}, ${}, ${}".format(d, s, t)
+    if instruction & 0b11111100000000000000011111111111 == 0b00000000000000000000000000101011: # set less than unsigned (sltu)
+        return "sltu ${}, ${}, ${}".format(d, s, t)
+    if instruction & 0b11111100000000000000000000000000 == 0b00010000000000000000000000000000: # branch on equal (beq)
+        return "beq ${}, ${}, {}".format(s, t, i)
+    if instruction & 0b11111100000000000000000000000000 == 0b00010100000000000000000000000000: # branch on not equal (bne)
+        return "bne ${}, ${}, {}".format(s, t, i)
+    if instruction & 0b11111100000111111111111111111111 == 0b00000000000000000000000000001000: # jump register (jr)
+        return "jr ${}".format(s)
+    if instruction & 0b11111100000111111111111111111111 == 0b00000000000000000000000000001001: # jump and link register (jalr)
+        return "jalr ${}".format(s)
+    return ".word 0x{:X}".format(instruction)
 
 if __name__ == "__main__":
     mips = Mippit()

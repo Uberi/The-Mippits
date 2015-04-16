@@ -1,7 +1,7 @@
 The Mippits
 ===========
 
-Flexible [MIPS](https://en.wikipedia.org/wiki/MIPS_instruction_set) **virtual machine** and **GDB-style debugger** with support for the [CS241](https://www.student.cs.uwaterloo.ca/~cs241/) MIPS instruction subset.
+Flexible [MIPS](https://en.wikipedia.org/wiki/MIPS_instruction_set) **virtual machine**, **GDB-style debugger**, and **disassembler** with support for the [CS241](https://www.student.cs.uwaterloo.ca/~cs241/) MIPS instruction subset.
 
 Rationale
 ---------
@@ -22,7 +22,7 @@ Now, [download the software](https://github.com/Uberi/The-Mippits/archive/master
 Using the Debugger
 ------------------
 
-If your assignment is due Wednesday and your code is both totally broken and entirely opaque, this is probably what you're looking for.
+If your assignment is due Wednesday and your code is both totally broken and entirely opaque, this is probably what you're looking for. The debugger allows you to follow code execution line by line, inspect any registers or memory locations, and even modify memory on the fly.
 
 Help:
 
@@ -78,6 +78,16 @@ Standard debugging:
     [DEBUGGER] Enter a debugger command (or "help" for options): c
     [DEBUGGER] Execution continuing from 0xffffffff
     [DEBUGGER] Program exited normally. 
+
+Using the Disassembler
+----------------------
+
+If you have an assembled MIPS file and want the ASM back, this is probably what you're looking for. The disassembler accepts assembled MIPS code and attempts to translate it back into MIPS assembly.
+
+Help:
+
+    $ ./disassembler.py --help
+    Usage: ./disassembler.py < MIPS_ASSEMBLED.mips > MIPS_DISASSEMBLED.asm
 
 License
 -------
