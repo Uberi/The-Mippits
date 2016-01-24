@@ -1,7 +1,7 @@
 The Mippits
 ===========
 
-Flexible [MIPS](https://en.wikipedia.org/wiki/MIPS_instruction_set) **virtual machine**, **GDB-style debugger**, and **disassembler** with support for the [CS241](https://www.student.cs.uwaterloo.ca/~cs241/) MIPS instruction subset.
+MIPPETS is a flexible [MIPS](https://en.wikipedia.org/wiki/MIPS_instruction_set) **virtual machine**, **GDB-style debugger**, and **disassembler** with support for the [CS241](https://www.student.cs.uwaterloo.ca/~cs241/) MIPS instruction subset.
 
 Rationale
 ---------
@@ -10,7 +10,7 @@ The CS241 course at the University of Waterloo, "Foundations of Sequential Progr
 
 However, they are strongly coupled with the student Linux environment, which makes it very difficult to work offline. If something goes wrong, one has very few tools to figure out what the problem is.
 
-MIPPET is a tiny, flexible, and extensible virtual machine to help alleviate these issues. The MIPPET debugger supports **breakpoints**, **stepping** (including stepping over calls), and **instruction/control flow tracing** with **inline value inspection**.
+MIPPITS is a tiny, flexible, and extensible virtual machine to help alleviate these issues. The MIPPITS debugger supports **breakpoints**, **stepping** (including stepping over calls), and **instruction/control flow tracing** with **inline value inspection**.
 
 Setup
 -----
@@ -92,6 +92,6 @@ Help:
 License
 -------
 
-MIPPIT is MIT licensed and lives at https://github.com/Uberi/The-Mippits/. See the `LICENSE` file in the program directory for more information.
+MIPPITS is MIT licensed and lives at https://github.com/Uberi/The-Mippits/. See the `LICENSE` file in the program directory for more information.
 
 Although MIPPITS tries to be faithful to the execution environment given in the course materials, it is possible that the simulation is not perfect and there may be subtle differences in functionality. Use this software at your own risk.
