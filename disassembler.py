@@ -15,7 +15,7 @@ for opt, arg in opts:
     if opt == "--help":
         print_help()
         sys.exit()
-if len(args) != 0:bash
+if len(args) != 0:
     print_help()
     sys.exit(2)
 
@@ -28,5 +28,5 @@ while index < len(words):
     if assembly_instruction.startswith("lis "): # load immediate and skip is always followed by a literal word
         if index < len(words) - 1: # there is a word after this one
             index += 1 # move to the literal word
-            print(".word 0x{:X}".format(words[index])) # display the literal word
+            print(".word {}".format(words[index])) # display the literal word
     index += 1 # move to the next word
